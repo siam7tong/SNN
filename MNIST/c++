@@ -1,0 +1,744 @@
+1 #include <Python.h>
+2 #include <iostream>
+3 #include "theano_mod_helper.h"
+4 #include "cuda_ndarray.cuh"
+5 #include <stdio.h>
+6 //////////////////////
+7 ////  Support Code
+8 //////////////////////
+9 __global__ void stdp_kernel(
+10             float *weight, int weight_size_0, int weight_size_1, int weight_size_2, int weight_size_3, 
+11             float *output_spike, int output_spike_size_0, int output_spike_size_1, 
+12                                  int output_spike_size_2, int output_spike_size_3,
+13             float *history, float *weight_update, f())
+14 {
+15  
+16     // Each thread is for an element in output_spike in the form:
+17     // (batch_id, channel_id, height_id, width_id) = (blockIdx.x, threadIdx.x, blockIdx.y, blockIdx.z).
+18     // Note that grid is 3D and block is 1D; this to make the channel the fastest dimension as across 
+19     // the channel the history patch block is accessed is same.   
+20     // IMPORTANT: Number of channels MUST BE LESS than maximum thread limit.
+21     // Note: All 'id's refer to numpy indices and 'index'/'linear_idx' refer to linear memory index.
+22 
+23     const int offset = weight_size_2 / 2;
+24     const int batch_id = blockIdx.x;
+25     const int channel_id = threadIdx.x;
+26     const int height_id = blockIdx.y;
+27     const int width_id = blockIdx.z;
+28 
+29     /*
+30     // some constants
+31     output_spike_size_1_2_3 = output_spike_size_1 * output_spike_size_2 * output_spike_size_3;
+32     output_spike_size_2_3 = output_spike_size_2 * output_spike_size_3;
+33     output_spike_size_3 = output_spike_size_3; // = gridDim.z;
+34     weight_size_0_1_2_3 = weight_size_0 * weight_size_1 * weight_size_2 * weight_size_3;
+35     weight_size_1_2_3 = weight_size_1 * weight_size_2 * weight_size_3;
+36     weight_size_2_3 = weight_size_2 * weight_size_3;
+37     weight_size_1 = weight_size_1
+38     weight_size_3 = weight_size_3
+39     */
+40 
+41     const int linear_idx = (batch_id * (output_spike_size_1 * output_spike_size_2 * output_spike_size_3)) \
+42                             + (channel_id * (output_spike_size_2 * output_spike_size_3)) \
+43                             + (height_id * (output_spike_size_3)) \
+44                             + width_id;
+45 
+46     if (output_spike[linear_idx] != 1.0f)
+47         return;
+48 
+49     const int filter_index = channel_id * (weight_size_1 * weight_size_2 * weight_size_3);
+50     const int delta_index_const = batch_id * (weight_size_0 * weight_size_1 * weight_size_2 * weight_size_3);
+51 
+52     float input_tmp;
+53     int w_index, deltaW_index;
+54     int filter_2d_index, filter_1d_index;
+55     int history_1d_index, history_2d_index, history_index, history_index1, history_index2;
+56     double mu_v,R_on,R,para
+57     short p1,p2,s1,s2
+58     fp() = f();
+59 
+60     for (int l = 0; l < weight_size_1; l++)
+61     {
+62         history_2d_index = (batch_id * (weight_size_1 * output_spike_size_2 * output_spike_size_3)) \
+63                         + (l * (output_spike_size_2 * output_spike_size_3));
+64         filter_2d_index = filter_index + (l * weight_size_2 * weight_size_3);
+65 
+66         for (int i = 0; i < weight_size_2; i++)
+67         {
+68             filter_1d_index = filter_2d_index + (i * weight_size_3);
+69             history_index1 = height_id + i - offset;
+70             if (history_index1 < 0 || history_index1 >= output_spike_size_2)
+71                 continue;
+72             history_1d_index = history_2d_index + (history_index1 * output_spike_size_3);
+73 
+74             for (int j = 0; j < weight_size_3; j++)
+75             {
+76                 w_index = filter_1d_index + j;
+77                 deltaW_index = delta_index_const + w_index;
+78                 history_index2 = width_id + j - offset;
+79                 if (history_index2 < 0 || history_index2 >= output_spike_size_3)
+80                     continue;
+81                 history_index = history_1d_index + history_index2;
+82                 input_tmp = history[history_index];
+83                 //weight_update[deltaW_index] = deltaW_index;
+84                 output_tmp = output_spike[history_index];
+85                 delta_voltage = input_tmp-output_tmp;
+86                 para = mu_v*R_on/D
+87                 if (delta_voltage>0)
+88                     weight_update[deltaW_index] = para*fp(delta_voltage)*(1+s1/s2)**p1;
+89                 else (delta_voltage<0)
+90                     weight_update[deltaW_index] = -para*fp(delta_voltage)*(1-s1/s2)**p2;
+91                 else
+92                     weight_update[deltaW_index] = 0;
+93             }
+94         }
+95     }
+96 }
+97 
+98 
+99 
+100 
+101     namespace {
+102     struct __struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960 {
+103         PyObject* __ERROR;
+104 
+105         PyObject* storage_V3;
+106 PyObject* storage_V5;
+107 PyObject* storage_V7;
+108 PyObject* storage_V1;
+109         
+110 
+111         __struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960() {
+112             // This is only somewhat safe because we:
+113             //  1) Are not a virtual class
+114             //  2) Do not use any virtual classes in the members
+115             //  3) Deal with mostly POD and pointers
+116 
+117             // If this changes, we would have to revise this, but for
+118             // now I am tired of chasing segfaults because
+119             // initialization code had an error and some pointer has
+120             // a junk value.
+121             memset(this, 0, sizeof(*this));
+122         }
+123         ~__struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960(void) {
+124             cleanup();
+125         }
+126 
+127         int init(PyObject* __ERROR, PyObject* storage_V3, PyObject* storage_V5, PyObject* storage_V7, PyObject* storage_V1) {
+128             Py_XINCREF(storage_V3);
+129 Py_XINCREF(storage_V5);
+130 Py_XINCREF(storage_V7);
+131 Py_XINCREF(storage_V1);
+132             this->storage_V3 = storage_V3;
+133 this->storage_V5 = storage_V5;
+134 this->storage_V7 = storage_V7;
+135 this->storage_V1 = storage_V1;
+136             
+137 
+138 
+139 
+140 
+141 
+142             this->__ERROR = __ERROR;
+143             return 0;
+144         }
+145         void cleanup(void) {
+146             __label_1:
+147 
+148 double __DUMMY_1;
+149 __label_3:
+150 
+151 double __DUMMY_3;
+152 __label_5:
+153 
+154 double __DUMMY_5;
+155 __label_7:
+156 
+157 double __DUMMY_7;
+158 __label_10:
+159 
+160 double __DUMMY_10;
+161 
+162             Py_XDECREF(this->storage_V3);
+163 Py_XDECREF(this->storage_V5);
+164 Py_XDECREF(this->storage_V7);
+165 Py_XDECREF(this->storage_V1);
+166         }
+167         int run(void) {
+168             int __failure = 0;
+169             
+170     PyObject* py_V1;
+171      CudaNdarray * V1;
+172     PyObject* py_V3;
+173      CudaNdarray * V3;
+174     PyObject* py_V5;
+175      CudaNdarray * V5;
+176     PyObject* py_V7;
+177      CudaNdarray * V7;
+178 {
+179 
+180     py_V1 = PyList_GET_ITEM(storage_V1, 0);
+181     {Py_XINCREF(py_V1);}
+182     
+183         if (py_V1 == Py_None)
+184         {
+185             V1 = NULL;
+186         }
+187         else
+188         {
+189             
+190         assert(py_V1->ob_refcnt >= 2); // There should be at least one ref from the container object,
+191         // and one ref from the local scope.
+192 
+193         if (CudaNdarray_Check(py_V1))
+194         {
+195             //fprintf(stderr, "c_extract CNDA object w refcnt %p %i\n", py_V1, (py_V1->ob_refcnt));
+196             V1 = (CudaNdarray*)py_V1;
+197             //std::cerr << "c_extract " << V1 << '\n';
+198         
+199 
+200                 if (V1->nd != 5)
+201                 {
+202                     PyErr_Format(PyExc_RuntimeError,
+203                                  "c_extract: Some CudaNdarray has rank %i, it was supposed to have rank 5",
+204                                  V1->nd);
+205                     V1 = NULL;
+206                     {
+207         __failure = 2;
+208         if (!PyErr_Occurred()) {
+209             PyErr_SetString(PyExc_RuntimeError,
+210                 "Unexpected error in an Op's C code. "
+211                 "No Python exception was set.");
+212             }
+213         goto __label_2;};
+214                 }
+215                 //std::cerr << "c_extract " << V1 << " nd check passed\n";
+216             
+217 
+218                 assert(V1);
+219                 Py_INCREF(py_V1);
+220             }
+221             else if (py_V1 == Py_None)
+222             {
+223                 PyErr_SetString(PyExc_TypeError,
+224                                 "expected a CudaNdarray, not None");
+225                 V1 = NULL;
+226                 {
+227         __failure = 2;
+228         if (!PyErr_Occurred()) {
+229             PyErr_SetString(PyExc_RuntimeError,
+230                 "Unexpected error in an Op's C code. "
+231                 "No Python exception was set.");
+232             }
+233         goto __label_2;};
+234             }
+235             else
+236             {
+237                 //fprintf(stderr, "FAILING c_extract CNDA object w refcnt %p %i\n", py_V1, (py_V1->ob_refcnt));
+238                 PyErr_SetString(PyExc_TypeError, "Argument not a CudaNdarray");
+239                 V1 = NULL;
+240                 {
+241         __failure = 2;
+242         if (!PyErr_Occurred()) {
+243             PyErr_SetString(PyExc_RuntimeError,
+244                 "Unexpected error in an Op's C code. "
+245                 "No Python exception was set.");
+246             }
+247         goto __label_2;};
+248             }
+249             //std::cerr << "c_extract done " << V1 << '\n';
+250             
+251 
+252         }
+253         
+254 {
+255 
+256     py_V3 = PyList_GET_ITEM(storage_V3, 0);
+257     {Py_XINCREF(py_V3);}
+258     
+259         assert(py_V3->ob_refcnt >= 2); // There should be at least one ref from the container object,
+260         // and one ref from the local scope.
+261 
+262         if (CudaNdarray_Check(py_V3))
+263         {
+264             //fprintf(stderr, "c_extract CNDA object w refcnt %p %i\n", py_V3, (py_V3->ob_refcnt));
+265             V3 = (CudaNdarray*)py_V3;
+266             //std::cerr << "c_extract " << V3 << '\n';
+267         
+268 
+269                 if (V3->nd != 4)
+270                 {
+271                     PyErr_Format(PyExc_RuntimeError,
+272                                  "c_extract: Some CudaNdarray has rank %i, it was supposed to have rank 4",
+273                                  V3->nd);
+274                     V3 = NULL;
+275                     {
+276         __failure = 4;
+277         if (!PyErr_Occurred()) {
+278             PyErr_SetString(PyExc_RuntimeError,
+279                 "Unexpected error in an Op's C code. "
+280                 "No Python exception was set.");
+281             }
+282         goto __label_4;};
+283                 }
+284                 //std::cerr << "c_extract " << V3 << " nd check passed\n";
+285             
+286 
+287                 if (CudaNdarray_HOST_DIMS(V3)[0] != 1)
+288                 {
+289                     PyErr_Format(PyExc_RuntimeError,
+290                                  "c_extract: Some CudaNdarray has dim %i on broadcastable dimension %i",
+291                                  CudaNdarray_HOST_DIMS(V3)[0], 0);
+292                     V3 = NULL;
+293                     {
+294         __failure = 4;
+295         if (!PyErr_Occurred()) {
+296             PyErr_SetString(PyExc_RuntimeError,
+297                 "Unexpected error in an Op's C code. "
+298                 "No Python exception was set.");
+299             }
+300         goto __label_4;};
+301                 }
+302                 //std::cerr << "c_extract " << V3 << "dim check 0 passed\n";
+303                 //std::cerr << "c_extract " << V3 << "checking bcast 0 <" << V3->str<< ">\n";
+304                 //std::cerr << "c_extract " << V3->str[0] << "\n";
+305                 if (CudaNdarray_HOST_STRIDES(V3)[0])
+306                 {
+307                     //std::cerr << "c_extract bad stride detected...\n";
+308                     PyErr_Format(PyExc_RuntimeError,
+309                                  "c_extract: Some CudaNdarray has a nonzero stride %i on a broadcastable dimension %i",
+310                                  CudaNdarray_HOST_STRIDES(V3)[0], 0);
+311                     V3 = NULL;
+312                     {
+313         __failure = 4;
+314         if (!PyErr_Occurred()) {
+315             PyErr_SetString(PyExc_RuntimeError,
+316                 "Unexpected error in an Op's C code. "
+317                 "No Python exception was set.");
+318             }
+319         goto __label_4;};
+320                 }
+321                 //std::cerr << "c_extract " << V3 << "bcast check 0 passed\n";
+322                     
+323 
+324                 assert(V3);
+325                 Py_INCREF(py_V3);
+326             }
+327             else if (py_V3 == Py_None)
+328             {
+329                 PyErr_SetString(PyExc_TypeError,
+330                                 "expected a CudaNdarray, not None");
+331                 V3 = NULL;
+332                 {
+333         __failure = 4;
+334         if (!PyErr_Occurred()) {
+335             PyErr_SetString(PyExc_RuntimeError,
+336                 "Unexpected error in an Op's C code. "
+337                 "No Python exception was set.");
+338             }
+339         goto __label_4;};
+340             }
+341             else
+342             {
+343                 //fprintf(stderr, "FAILING c_extract CNDA object w refcnt %p %i\n", py_V3, (py_V3->ob_refcnt));
+344                 PyErr_SetString(PyExc_TypeError, "Argument not a CudaNdarray");
+345                 V3 = NULL;
+346                 {
+347         __failure = 4;
+348         if (!PyErr_Occurred()) {
+349             PyErr_SetString(PyExc_RuntimeError,
+350                 "Unexpected error in an Op's C code. "
+351                 "No Python exception was set.");
+352             }
+353         goto __label_4;};
+354             }
+355             //std::cerr << "c_extract done " << V3 << '\n';
+356             
+357 
+358 {
+359 
+360     py_V5 = PyList_GET_ITEM(storage_V5, 0);
+361     {Py_XINCREF(py_V5);}
+362     
+363         assert(py_V5->ob_refcnt >= 2); // There should be at least one ref from the container object,
+364         // and one ref from the local scope.
+365 
+366         if (CudaNdarray_Check(py_V5))
+367         {
+368             //fprintf(stderr, "c_extract CNDA object w refcnt %p %i\n", py_V5, (py_V5->ob_refcnt));
+369             V5 = (CudaNdarray*)py_V5;
+370             //std::cerr << "c_extract " << V5 << '\n';
+371         
+372 
+373                 if (V5->nd != 4)
+374                 {
+375                     PyErr_Format(PyExc_RuntimeError,
+376                                  "c_extract: Some CudaNdarray has rank %i, it was supposed to have rank 4",
+377                                  V5->nd);
+378                     V5 = NULL;
+379                     {
+380         __failure = 6;
+381         if (!PyErr_Occurred()) {
+382             PyErr_SetString(PyExc_RuntimeError,
+383                 "Unexpected error in an Op's C code. "
+384                 "No Python exception was set.");
+385             }
+386         goto __label_6;};
+387                 }
+388                 //std::cerr << "c_extract " << V5 << " nd check passed\n";
+389             
+390 
+391                 if (CudaNdarray_HOST_DIMS(V5)[0] != 1)
+392                 {
+393                     PyErr_Format(PyExc_RuntimeError,
+394                                  "c_extract: Some CudaNdarray has dim %i on broadcastable dimension %i",
+395                                  CudaNdarray_HOST_DIMS(V5)[0], 0);
+396                     V5 = NULL;
+397                     {
+398         __failure = 6;
+399         if (!PyErr_Occurred()) {
+400             PyErr_SetString(PyExc_RuntimeError,
+401                 "Unexpected error in an Op's C code. "
+402                 "No Python exception was set.");
+403             }
+404         goto __label_6;};
+405                 }
+406                 //std::cerr << "c_extract " << V5 << "dim check 0 passed\n";
+407                 //std::cerr << "c_extract " << V5 << "checking bcast 0 <" << V5->str<< ">\n";
+408                 //std::cerr << "c_extract " << V5->str[0] << "\n";
+409                 if (CudaNdarray_HOST_STRIDES(V5)[0])
+410                 {
+411                     //std::cerr << "c_extract bad stride detected...\n";
+412                     PyErr_Format(PyExc_RuntimeError,
+413                                  "c_extract: Some CudaNdarray has a nonzero stride %i on a broadcastable dimension %i",
+414                                  CudaNdarray_HOST_STRIDES(V5)[0], 0);
+415                     V5 = NULL;
+416                     {
+417         __failure = 6;
+418         if (!PyErr_Occurred()) {
+419             PyErr_SetString(PyExc_RuntimeError,
+420                 "Unexpected error in an Op's C code. "
+421                 "No Python exception was set.");
+422             }
+423         goto __label_6;};
+424                 }
+425                 //std::cerr << "c_extract " << V5 << "bcast check 0 passed\n";
+426                     
+427 
+428                 assert(V5);
+429                 Py_INCREF(py_V5);
+430             }
+431             else if (py_V5 == Py_None)
+432             {
+433                 PyErr_SetString(PyExc_TypeError,
+434                                 "expected a CudaNdarray, not None");
+435                 V5 = NULL;
+436                 {
+437         __failure = 6;
+438         if (!PyErr_Occurred()) {
+439             PyErr_SetString(PyExc_RuntimeError,
+440                 "Unexpected error in an Op's C code. "
+441                 "No Python exception was set.");
+442             }
+443         goto __label_6;};
+444             }
+445             else
+446             {
+447                 //fprintf(stderr, "FAILING c_extract CNDA object w refcnt %p %i\n", py_V5, (py_V5->ob_refcnt));
+448                 PyErr_SetString(PyExc_TypeError, "Argument not a CudaNdarray");
+449                 V5 = NULL;
+450                 {
+451         __failure = 6;
+452         if (!PyErr_Occurred()) {
+453             PyErr_SetString(PyExc_RuntimeError,
+454                 "Unexpected error in an Op's C code. "
+455                 "No Python exception was set.");
+456             }
+457         goto __label_6;};
+458             }
+459             //std::cerr << "c_extract done " << V5 << '\n';
+460             
+461 
+462 {
+463 
+464     py_V7 = PyList_GET_ITEM(storage_V7, 0);
+465     {Py_XINCREF(py_V7);}
+466     
+467         assert(py_V7->ob_refcnt >= 2); // There should be at least one ref from the container object,
+468         // and one ref from the local scope.
+469 
+470         if (CudaNdarray_Check(py_V7))
+471         {
+472             //fprintf(stderr, "c_extract CNDA object w refcnt %p %i\n", py_V7, (py_V7->ob_refcnt));
+473             V7 = (CudaNdarray*)py_V7;
+474             //std::cerr << "c_extract " << V7 << '\n';
+475         
+476 
+477                 if (V7->nd != 4)
+478                 {
+479                     PyErr_Format(PyExc_RuntimeError,
+480                                  "c_extract: Some CudaNdarray has rank %i, it was supposed to have rank 4",
+481                                  V7->nd);
+482                     V7 = NULL;
+483                     {
+484         __failure = 8;
+485         if (!PyErr_Occurred()) {
+486             PyErr_SetString(PyExc_RuntimeError,
+487                 "Unexpected error in an Op's C code. "
+488                 "No Python exception was set.");
+489             }
+490         goto __label_8;};
+491                 }
+492                 //std::cerr << "c_extract " << V7 << " nd check passed\n";
+493             
+494 
+495                 assert(V7);
+496                 Py_INCREF(py_V7);
+497             }
+498             else if (py_V7 == Py_None)
+499             {
+500                 PyErr_SetString(PyExc_TypeError,
+501                                 "expected a CudaNdarray, not None");
+502                 V7 = NULL;
+503                 {
+504         __failure = 8;
+505         if (!PyErr_Occurred()) {
+506             PyErr_SetString(PyExc_RuntimeError,
+507                 "Unexpected error in an Op's C code. "
+508                 "No Python exception was set.");
+509             }
+510         goto __label_8;};
+511             }
+512             else
+513             {
+514                 //fprintf(stderr, "FAILING c_extract CNDA object w refcnt %p %i\n", py_V7, (py_V7->ob_refcnt));
+515                 PyErr_SetString(PyExc_TypeError, "Argument not a CudaNdarray");
+516                 V7 = NULL;
+517                 {
+518         __failure = 8;
+519         if (!PyErr_Occurred()) {
+520             PyErr_SetString(PyExc_RuntimeError,
+521                 "Unexpected error in an Op's C code. "
+522                 "No Python exception was set.");
+523             }
+524         goto __label_8;};
+525             }
+526             //std::cerr << "c_extract done " << V7 << '\n';
+527             
+528 
+529 {
+530 // Op class stdpOp
+531 
+532 
+533     const int *os_size = CudaNdarray_HOST_DIMS(V3);
+534     const int *h_size = CudaNdarray_HOST_DIMS(V5);
+535     const int *w_size = CudaNdarray_HOST_DIMS(V7);
+536     int delta_w_size[5] = {os_size[0], w_size[0], w_size[1], w_size[2], w_size[3]};
+537     
+538     if (os_size[1] > 1024)
+539     {
+540         fprintf(stderr, "\nSTDP_OP ERROR: CHANNEL SIZE EXCEEDED THREAD LIMIT (%d).\n", 1024);
+541     }
+542 
+543     Py_XDECREF(V1);
+544 
+545     V1 = (CudaNdarray*)CudaNdarray_ZEROS(5,delta_w_size);  //zeros uses int* while ndims uses const int * as second argument
+546     if (NULL == V1)
+547     {
+548         PyErr_Format(PyExc_RuntimeError,
+549                     "stdpOpMM: Failed to allocate output of %d x %d x %d x %d",
+550                     w_size[0], w_size[1], w_size[2], w_size[3]);
+551     }
+552 
+553     if (!(CudaNdarray_is_c_contiguous(V3) && CudaNdarray_is_c_contiguous(V5)             && CudaNdarray_is_c_contiguous(V7) && CudaNdarray_is_c_contiguous(V1)))
+554     {
+555         fprintf(stderr, "\nSTDP_OP ERROR: VARIABLES NOT C-CONTIGUOUS.\n");
+556     }
+557 
+558     //dim3 threads(threadx,thready);
+559     int threads = os_size[1];
+560     dim3 grid(os_size[0], os_size[2], os_size[3]);
+561 
+562     stdp_kernel <<< grid, threads >>> (V7->devdata, w_size[0], w_size[1], w_size[2], w_size[3], 
+563                                         V3->devdata, os_size[0], os_size[1], os_size[2], os_size[3], 
+564                                         V5->devdata, V1->devdata);
+565     CNDA_THREAD_SYNC;
+566     cudaError_t sts = cudaGetLastError();
+567     if (cudaSuccess != sts)
+568     {
+569         fprintf(stderr, "\nSTDP_OP KERNEL ERROR: error_code=%d, %s.\n", sts, cudaGetErrorString(sts));
+570     }
+571 
+572     //Py_XDECREF(V1);
+573     if (V1 == NULL)
+574     {
+575         {
+576         __failure = 9;
+577         if (!PyErr_Occurred()) {
+578             PyErr_SetString(PyExc_RuntimeError,
+579                 "Unexpected error in an Op's C code. "
+580                 "No Python exception was set.");
+581             }
+582         goto __label_9;}
+583     }
+584 __label_9:
+585 
+586 double __DUMMY_9;
+587 
+588 }
+589 __label_8:
+590 
+591         //std::cerr << "cleanup " << py_V7 << " " << V7 << "\n";
+592         //fprintf(stderr, "c_cleanup CNDA py_object w refcnt %p %i\n", py_V7, (py_V7->ob_refcnt));
+593         if (V7)
+594         {
+595             //fprintf(stderr, "c_cleanup CNDA cn_object w refcnt %p %i\n", V7, (V7->ob_refcnt));
+596             Py_XDECREF(V7);
+597         }
+598         //std::cerr << "cleanup done" << py_V7 << "\n";
+599         
+600     {Py_XDECREF(py_V7);}
+601     
+602 double __DUMMY_8;
+603 
+604 }
+605 __label_6:
+606 
+607         //std::cerr << "cleanup " << py_V5 << " " << V5 << "\n";
+608         //fprintf(stderr, "c_cleanup CNDA py_object w refcnt %p %i\n", py_V5, (py_V5->ob_refcnt));
+609         if (V5)
+610         {
+611             //fprintf(stderr, "c_cleanup CNDA cn_object w refcnt %p %i\n", V5, (V5->ob_refcnt));
+612             Py_XDECREF(V5);
+613         }
+614         //std::cerr << "cleanup done" << py_V5 << "\n";
+615         
+616     {Py_XDECREF(py_V5);}
+617     
+618 double __DUMMY_6;
+619 
+620 }
+621 __label_4:
+622 
+623         //std::cerr << "cleanup " << py_V3 << " " << V3 << "\n";
+624         //fprintf(stderr, "c_cleanup CNDA py_object w refcnt %p %i\n", py_V3, (py_V3->ob_refcnt));
+625         if (V3)
+626         {
+627             //fprintf(stderr, "c_cleanup CNDA cn_object w refcnt %p %i\n", V3, (V3->ob_refcnt));
+628             Py_XDECREF(V3);
+629         }
+630         //std::cerr << "cleanup done" << py_V3 << "\n";
+631         
+632     {Py_XDECREF(py_V3);}
+633     
+634 double __DUMMY_4;
+635 
+636 }
+637 __label_2:
+638 
+639     if (!__failure) {
+640       
+641         //std::cerr << "sync\n";
+642         if (NULL == V1) {
+643             // failure: sync None to storage
+644             Py_XDECREF(py_V1);
+645             py_V1 = Py_None;
+646             Py_INCREF(py_V1);
+647         }
+648         else
+649         {
+650             if (py_V1 != (PyObject*)V1)
+651             {
+652                 Py_XDECREF(py_V1);
+653                 py_V1 = (PyObject*)V1;
+654                 Py_INCREF(py_V1);
+655             }
+656             assert(py_V1->ob_refcnt);
+657         }
+658         
+659       PyObject* old = PyList_GET_ITEM(storage_V1, 0);
+660       {Py_XINCREF(py_V1);}
+661       PyList_SET_ITEM(storage_V1, 0, py_V1);
+662       {Py_XDECREF(old);}
+663     }
+664     
+665         //std::cerr << "cleanup " << py_V1 << " " << V1 << "\n";
+666         //fprintf(stderr, "c_cleanup CNDA py_object w refcnt %p %i\n", py_V1, (py_V1->ob_refcnt));
+667         if (V1)
+668         {
+669             //fprintf(stderr, "c_cleanup CNDA cn_object w refcnt %p %i\n", V1, (V1->ob_refcnt));
+670             Py_XDECREF(V1);
+671         }
+672         //std::cerr << "cleanup done" << py_V1 << "\n";
+673         
+674     {Py_XDECREF(py_V1);}
+675     
+676 double __DUMMY_2;
+677 
+678 }
+679 
+680             
+681         if (__failure) {
+682             // When there is a failure, this code puts the exception
+683             // in __ERROR.
+684             PyObject* err_type = NULL;
+685             PyObject* err_msg = NULL;
+686             PyObject* err_traceback = NULL;
+687             PyErr_Fetch(&err_type, &err_msg, &err_traceback);
+688             if (!err_type) {err_type = Py_None;Py_INCREF(Py_None);}
+689             if (!err_msg) {err_msg = Py_None; Py_INCREF(Py_None);}
+690             if (!err_traceback) {err_traceback = Py_None; Py_INCREF(Py_None);}
+691             PyObject* old_err_type = PyList_GET_ITEM(__ERROR, 0);
+692             PyObject* old_err_msg = PyList_GET_ITEM(__ERROR, 1);
+693             PyObject* old_err_traceback = PyList_GET_ITEM(__ERROR, 2);
+694             PyList_SET_ITEM(__ERROR, 0, err_type);
+695             PyList_SET_ITEM(__ERROR, 1, err_msg);
+696             PyList_SET_ITEM(__ERROR, 2, err_traceback);
+697             {Py_XDECREF(old_err_type);}
+698             {Py_XDECREF(old_err_msg);}
+699             {Py_XDECREF(old_err_traceback);}
+700         }
+701         // The failure code is returned to index what code block failed.
+702         return __failure;
+703         
+704         }
+705     };
+706     }
+707     
+708 
+709         static int __struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960_executor(__struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960* self) {
+710             return self->run();
+711         }
+712 
+713         static void __struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960_destructor(void* executor, void* self) {
+714             delete ((__struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960*)self);
+715         }
+716         
+717 //////////////////////
+718 ////  Functions
+719 //////////////////////
+720 static PyObject * instantiate(PyObject * self, PyObject *argtuple) {
+721   assert(PyTuple_Check(argtuple));
+722   if (5 != PyTuple_Size(argtuple)){ 
+723      PyErr_Format(PyExc_TypeError, "Wrong number of arguments, expected 5, got %i", (int)PyTuple_Size(argtuple));
+724      return NULL;
+725   }
+726   __struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960* struct_ptr = new __struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960();
+727   if (struct_ptr->init( PyTuple_GET_ITEM(argtuple, 0),PyTuple_GET_ITEM(argtuple, 1),PyTuple_GET_ITEM(argtuple, 2),PyTuple_GET_ITEM(argtuple, 3),PyTuple_GET_ITEM(argtuple, 4) ) != 0) {
+728     delete struct_ptr;
+729     return NULL;
+730   }
+731   PyObject* thunk = PyCObject_FromVoidPtrAndDesc((void*)(&__struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960_executor), struct_ptr, __struct_compiled_op_c1d0cfb9fc9ce5cbb3e04e9c03b13960_destructor);
+732   return thunk; }
+733 
+734 //////////////////////
+735 ////  Module init
+736 //////////////////////
+737 static PyMethodDef MyMethods[] = {
+738 	{"instantiate", instantiate, METH_VARARGS, "undocumented"} ,
+739 	{NULL, NULL, 0, NULL}
+740 };
+741 PyMODINIT_FUNC initc1d0cfb9fc9ce5cbb3e04e9c03b13960(void){
+742    (void) Py_InitModule("c1d0cfb9fc9ce5cbb3e04e9c03b13960", MyMethods);
+743 }
+744 
